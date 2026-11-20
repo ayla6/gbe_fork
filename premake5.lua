@@ -185,6 +185,14 @@ local function genproto()
         protoc_exe = protoc_exe .. '.exe'
     end
 
+    -- A 64-bit Windows host can run the compiler from a 32-bit-only deps build.
+    if not os.isfile(protoc_exe) and os.host() == "windows" and os.target() == "windows" then
+        local protoc32 = path.join(deps_dir, 'protobuf', 'install32', 'bin', 'protoc.exe')
+        if os.isfile(protoc32) then
+            protoc_exe = protoc32
+        end
+    end
+
     if not os.isfile(protoc_exe) then
         error("protoc not found! " .. protoc_exe)
         return

@@ -30,7 +30,7 @@ jobs:
           repository: Detanup01/gbe_fork
           ref: 556998fa1c2df35e7d208c1ddfb7445080ab2ec2
           path: third-party/build/win
-      - uses: actions/cache@v5
+      - uses: actions/cache/restore@v5
         id: deps
         with:
           path: build/deps/win/vs2022
@@ -41,6 +41,12 @@ jobs:
         run: |
           set "CMAKE_GENERATOR=Visual Studio 17 2022"
           third-party\common\win\premake\premake5.exe --file=premake5-deps.lua --32-build --all-ext --all-build --j=4 --verbose --clean --os=windows vs2022
+      - name: Save completed dependencies
+        if: steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: build/deps/win/vs2022
+          key: win32-vs2022-deps-9ed52894-83308a20-v1
       - name: Generate Visual Studio solution
         shell: cmd
         run: third-party\common\win\premake\premake5.exe --file=premake5.lua --genproto --emubuild=${{ github.sha }} --winrsrc --os=windows vs2022
