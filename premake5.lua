@@ -185,6 +185,14 @@ local function genproto()
         protoc_exe = protoc_exe .. '.exe'
     end
 
+    -- A 64-bit Windows host can run the compiler from a 32-bit-only deps build.
+    if not os.isfile(protoc_exe) and os.host() == "windows" and os.target() == "windows" then
+        local protoc32 = path.join(deps_dir, 'protobuf', 'install32', 'bin', 'protoc.exe')
+        if os.isfile(protoc32) then
+            protoc_exe = protoc32
+        end
+    end
+
     if not os.isfile(protoc_exe) then
         error("protoc not found! " .. protoc_exe)
         return
@@ -309,6 +317,7 @@ local common_files = {
     'crash_printer/' .. os_iden .. '.cpp', 'crash_printer/crash_printer/' .. os_iden .. '.hpp',
     -- helpers/common_helpers
     "helpers/common_helpers.cpp", "helpers/common_helpers/**",
+    "helpers/gamepad_provider.cpp", "helpers/gamepad_provider/**",
     -- helpers/dbg_log
     "helpers/dbg_log.cpp", "helpers/dbg_log/**",
 }
@@ -460,6 +469,8 @@ local common_link_win = {
     "Bcrypt"   .. static_postfix,
     "Dbghelp"  .. static_postfix,
     "ntdll"    .. static_postfix,
+    -- SDL3 static dependencies
+    "imagehlp", "imm32", "ole32", "oleaut32", "shell32", "version", "uuid", "advapi32", "setupapi", "user32",
     -- gamepad
     "Xinput"   .. static_postfix,
     -- imgui / overlay

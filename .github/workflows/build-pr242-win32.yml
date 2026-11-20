@@ -1,0 +1,62 @@
+name: Windows x86 PR 242
+on:
+  workflow_dispatch:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v6
+      - uses: microsoft/setup-msbuild@v3
+      - uses: actions/checkout@v6
+        with:
+          repository: Detanup01/gbe_fork
+          ref: d431ffceaadf4e279e70bc4adea3ae42be6820ac
+          path: third-party/common/win
+      - uses: actions/checkout@v6
+        with:
+          repository: Detanup01/gbe_fork
+          ref: 9ed52894f85943758c776cc4394be8b921e8d354
+          path: third-party/deps/common
+      - uses: actions/checkout@v6
+        with:
+          repository: Detanup01/gbe_fork
+          ref: 83308a20b093ff955fd8119726eb6d531027b2a6
+          path: third-party/deps/win
+      - uses: actions/checkout@v6
+        with:
+          repository: Detanup01/gbe_fork
+          ref: 556998fa1c2df35e7d208c1ddfb7445080ab2ec2
+          path: third-party/build/win
+      - uses: actions/cache/restore@v5
+        id: deps
+        with:
+          path: build/deps/win/vs2022
+          key: win32-vs2022-deps-9ed52894-83308a20-v1
+      - name: Build 32-bit dependencies
+        if: steps.deps.outputs.cache-hit != 'true'
+        shell: cmd
+        run: |
+          set "CMAKE_GENERATOR=Visual Studio 17 2022"
+          third-party\common\win\premake\premake5.exe --file=premake5-deps.lua --32-build --all-ext --all-build --j=4 --verbose --clean --os=windows vs2022
+      - name: Save completed dependencies
+        if: steps.deps.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v5
+        with:
+          path: build/deps/win/vs2022
+          key: win32-vs2022-deps-9ed52894-83308a20-v1
+      - name: Generate Visual Studio solution
+        shell: cmd
+        run: third-party\common\win\premake\premake5.exe --file=premake5.lua --genproto --emubuild=${{ github.sha }} --winrsrc --os=windows vs2022
+      - name: Build Windows x86 release binaries
+        shell: cmd
+        working-directory: build/project/vs2022/win
+        run: msbuild gbe.sln /nologo /m:2 /p:CL_MPCount=2 /p:Configuration=release /p:Platform=Win32 /target:api_regular,api_experimental,steamclient_experimental,steamclient_experimental_stub,steamclient_experimental_loader,steamclient_experimental_extra,lib_game_overlay_renderer
+      - uses: actions/upload-artifact@v7
+        with:
+          name: gbe-pr242-windows-x86-release
+          path: build/win/vs2022/release
+          if-no-files-found: error
+          retention-days: 14
