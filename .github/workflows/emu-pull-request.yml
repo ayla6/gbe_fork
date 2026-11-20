@@ -21,20 +21,25 @@ permissions:
 jobs:
   emu-win-all:
     name: "win"
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.repository == 'Detanup01/gbe_fork' }}
     uses: "./.github/workflows/emu-build-all-win.yml"
 
   emu-win-all-vs22:
     name: "win vs22"
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.repository == 'Detanup01/gbe_fork' }}
     uses: "./.github/workflows/emu-build-all-win-vs22.yml"
 
   emu-linux-all:
     name: "linux"
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.repository == 'Detanup01/gbe_fork' }}
     uses: "./.github/workflows/emu-build-all-linux.yml"
 
   emu-linux-all-arm:
     name: "linux arm"
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && github.repository == 'Detanup01/gbe_fork' }}
     uses: "./.github/workflows/emu-build-all-linux-arm.yml"
+
+  windows-x86:
+    name: Windows x86 release
+    if: ${{ github.repository != 'Detanup01/gbe_fork' }}
+    uses: ./.github/workflows/build-pr242-win32.yml

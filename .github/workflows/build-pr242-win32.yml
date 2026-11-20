@@ -1,8 +1,7 @@
 name: Windows x86 PR 242
 on:
   workflow_dispatch:
-  push:
-    branches: [build/pr-242-win32]
+  workflow_call:
 permissions:
   contents: read
 jobs:
